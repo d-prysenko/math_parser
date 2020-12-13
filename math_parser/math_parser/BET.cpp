@@ -1,6 +1,71 @@
 #include "BET.h"
 
 
+node::node(std::string id)
+	: left(nullptr), right(nullptr), type(nodeType::id)
+{
+	val.id = new std::string(id);
+}
+
+node::node(int num)
+	: left(nullptr), right(nullptr), type(nodeType::number)
+{
+	val.number = num;
+}
+
+node::node(char sign)
+	: left(nullptr), right(nullptr), type(nodeType::sign)
+{
+	val.sign = sign;
+}
+
+node::node(node& source)
+	: left(nullptr), right(nullptr), type(source.type), val(source.val)
+{
+	if (type == nodeType::id)
+		val.id = new std::string(*source.val.id);
+
+	if (source.left != nullptr)
+	{
+		left = new node(*source.left);
+	}
+
+	if (source.right != nullptr)
+	{
+		right = new node(*source.right);
+	}
+}
+
+node::~node()
+{
+	if (type == nodeType::id && val.id != nullptr)
+	{
+		delete val.id;
+		val.id = nullptr;
+	}
+}
+
+inline bool node::isSign(char c)
+{
+	return this->type == nodeType::sign && this->val.sign == c;
+}
+
+std::string node::toString()
+{
+	switch (type)
+	{
+	case nodeType::number:
+		return std::to_string(val.number);
+	case nodeType::id:
+		return *val.id;
+	case nodeType::sign:
+		return std::string(1, val.sign);
+	default:
+		assert("Critical error! Unknown node!");
+		break;
+	}
+}
+
 
 BET::BET()
 	: root(nullptr)
@@ -27,17 +92,23 @@ BET::~BET()
 	}
 }
 
-void BET::destruct(node<>* p_node)
+void BET::destruct(node* p_node)
 {
 	//auto it = std::find(symboltable.begin(), symboltable.end(), p_node);
 	//if (p_node->type == identifier && it == symboltable.end())
 	//	return;
 
 	if (p_node->left != nullptr)
+	{
 		destruct(p_node->left);
+		p_node->left = nullptr;
+	}
 
 	if (p_node->right != nullptr)
+	{
 		destruct(p_node->right);
+		p_node->right = nullptr;
+	}
 
 	//if (p_node->type == identifier)
 	//	symboltable.erase(it);
@@ -45,7 +116,7 @@ void BET::destruct(node<>* p_node)
 	delete p_node;
 }
 
-node<>* BET::Parse(std::string expression)
+node* BET::Parse(std::string expression)
 {
 	for (char &c : expression)
 	{
@@ -73,44 +144,45 @@ void BET::openBrackets()
 	this->root = openBrackets(this->root);
 }
 
-node<>* BET::openBrackets(node<>* p_node)
+node* BET::openBrackets(node* p_node)
 {
 	if (p_node == nullptr || p_node->right == nullptr || p_node->left == nullptr)
-		return p_node;
+		return p_node;	
 
+	p_node->left = openBrackets(p_node->left);
+	p_node->right = openBrackets(p_node->right);
 
-
-	if (p_node->toString() == "*"
-	&& (p_node->left->type == nodeType::identifier || p_node->left->type == nodeType::number)
-	&& (p_node->right->toString() == "+" || p_node->right->toString() == "-"))
+	if (p_node->isSign('*')
+	&& (p_node->left->type == nodeType::id || p_node->left->type == nodeType::number)
+	&& (p_node->right->isSign('+') || p_node->right->isSign('-')))
 	{
-		node<sign>* p_node_new = new node<sign>(p_node->right->toString().front());
+		node* p_node_new = new node(p_node->right->val.sign);
 
-		p_node_new->left = new node<sign>('*');
+		p_node_new->left = new node('*');
 		p_node_new->left->left = p_node->left;
 		p_node_new->left->right = p_node->right->left;
+		p_node_new->left = openBrackets(p_node_new->left);
 
-		p_node_new->right = new node<sign>('*');
-		// Тут нада полностью скопировать объект
-		p_node_new->right->left = p_node->left;
-		//
+		p_node_new->right = new node('*');
+		p_node_new->right->left = new node(*p_node->left);
 		p_node_new->right->right = p_node->right->right;
+		p_node_new->right = openBrackets(p_node_new->right);
 
 		delete p_node->right;
 		delete p_node;
 
-		return p_node_new;
+		p_node = p_node_new;
 	}
+	
 
-	p_node->left = openBrackets(p_node->left);
-	p_node->right = openBrackets(p_node->right);
+	return p_node;
 }
 
-std::string BET::setBrackets(node<>* parent_node, node<>* child_node)
+std::string BET::setBrackets(node* parent_node, node* child_node)
 {
 	if (child_node != nullptr)
 	{
-		if ((parent_node->toString() == "*" || parent_node->toString() == "-") && (child_node->toString() == "+" || child_node->toString() == "-"))
+		if ((parent_node->isSign('*') || parent_node->isSign('/') || parent_node->isSign('-')) && (child_node->isSign('+') || child_node->isSign('-')))
 		{
 			return "(" + toString(child_node) + ")";
 		}
@@ -121,14 +193,14 @@ std::string BET::setBrackets(node<>* parent_node, node<>* child_node)
 	return "";
 }
 
-std::string BET::toString(node<>* p_node)
+std::string BET::toString(node* p_node)
 {
 	std::string out = "";
 	
 	out += setBrackets(p_node, p_node->left);
 
 
-	if (p_node->toString() == "+" || p_node->toString() == "-")
+	if (p_node->isSign('+') || p_node->isSign('-'))
 	{
 		out += " " + p_node->toString() + " ";
 	}
@@ -141,10 +213,10 @@ std::string BET::toString(node<>* p_node)
 	return out;
 }
 
-node<>* BET::Parse(std::string expression, node<>* n)
+node* BET::Parse(std::string expression, node* n)
 {
-	std::string token = trimBrackets(expression);
-
+	//std::string token = trimBrackets(expression);
+	std::string token = expression;
 	int brackets = 0;
 	const size_t end = token.length()-1;
 
@@ -162,10 +234,10 @@ node<>* BET::Parse(std::string expression, node<>* n)
 
 	if (i > 0)
 	{
-		n = new node<sign>(token[i]);
+		n = new node(token[i]);
 
-		std::string ltoken = token.substr(0, i);
-		std::string rtoken = token.substr(i + 1, end - i);
+		std::string ltoken = trimBrackets(token.substr(0, i));
+		std::string rtoken = trimBrackets(token.substr(i + 1, end - i));
 		n->left = Parse(ltoken, n->left);
 		n->right = Parse(rtoken, n->right);
 
@@ -189,14 +261,23 @@ node<>* BET::Parse(std::string expression, node<>* n)
 
 	// Process * and /
 	i = end;
-	while (i >= 0 && token[i] != '*' && token[i] != '/') i--;
+	brackets = 0;
+	while (i >= 0 && (token[i] != '*' && token[i] != '/' || brackets != 0))
+	{
+		if (token[i] == '(')
+			brackets++;
+		else if (token[i] == ')')
+			brackets--;
+
+		i--;
+	}
 
 	if (i > 0)
 	{
-		n = new node<sign>(token[i]);
+		n = new node(token[i]);
 
-		std::string ltoken = token.substr(0, i);
-		std::string rtoken = token.substr(i + 1, end - i);
+		std::string ltoken = trimBrackets(token.substr(0, i));
+		std::string rtoken = trimBrackets(token.substr(i + 1, end - i));
 		n->left = Parse(ltoken, n->left);
 		n->right = Parse(rtoken, n->right);
 
@@ -205,26 +286,17 @@ node<>* BET::Parse(std::string expression, node<>* n)
 
 	if (isalpha(token.front()))
 	{
-		auto it = symboltable.find(token);
-		if (it != symboltable.end())
-		{
-			n = it->second;
-		}
-		else
-		{
-			n = new node<identifier>(token);
-			symboltable[token] = n;
-		}
+		n = new node(token);
 	}
 	else
-		n = new node<number>(std::stoi(token));
+		n = new node(std::stoi(token));
 
 	return n;
 }
 
 std::string BET::trimBrackets(std::string str)
 {
-	while (str.front() == '(' && str.back() == ')')
+	if (str.front() == '(' && str.back() == ')')
 		str = str.substr(1, str.length() - 2);
 
 	return str;
@@ -299,11 +371,4 @@ bool islang(const char c)
 		return true;
 
 	return false;
-}
-
-std::string & BET::iterator::operator*()
-{
-	// TODO: вставьте здесь оператор return
-	std::string res = "overloaded operator * for custom iterator\n";
-	return res;
 }
