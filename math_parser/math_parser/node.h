@@ -32,6 +32,10 @@ struct node
 	virtual std::string getInfo() = 0;
 	virtual std::string toString() = 0;
 
+	node() {}
+
+	virtual ~node() { }
+
 protected:
 	template<typename v>
 	std::string _getInfo(const char* type, v val)
@@ -48,9 +52,9 @@ struct node<nodeType::identifier> : node<>
 {
 	std::string val;
 
-	node(std::string identifier)
-		: val(identifier)
+	node(std::string id)
 	{
+		this->val = id;
 		//std::cout << "Constructor identifier. " << identifier << "\n";
 		this->type = nodeType::identifier;
 	}
@@ -63,6 +67,11 @@ struct node<nodeType::identifier> : node<>
 	std::string toString()
 	{
 		return val;
+	}
+
+	virtual ~node()
+	{
+		
 	}
 
 };
