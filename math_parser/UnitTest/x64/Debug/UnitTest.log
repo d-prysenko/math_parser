@@ -2,4 +2,6 @@
 D:\repos\math_parser\math_parser\math_parser\BET.cpp(258,13): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
 D:\repos\math_parser\math_parser\math_parser\BET.cpp(293,9): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
 D:\repos\math_parser\math_parser\math_parser\BET.cpp(67): warning C4715: node::toString: значение возвращается не при всех путях выполнения
+  LINK : не найден или не выполнена сборка D:\repos\math_parser\math_parser\x64\Debug\UnitTest.dll при последней инкрементной компоновке; выполняется полная компоновка
+     Создается библиотека D:\repos\math_parser\math_parser\x64\Debug\UnitTest.lib и объект D:\repos\math_parser\math_parser\x64\Debug\UnitTest.exp
   UnitTest.vcxproj -> D:\repos\math_parser\math_parser\x64\Debug\UnitTest.dll
