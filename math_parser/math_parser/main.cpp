@@ -58,6 +58,7 @@ int main()
 	//std::cout << std::endl;
 
 	BET b2("a - d*(e - f - n) + k");
+
 	std::cout << b2.toString() << std::endl;
 	b2.openBrackets();
 	std::cout << b2.toString() << std::endl << std::endl;
