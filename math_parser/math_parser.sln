@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "math_parser", "math_parser\math_parser.vcxproj", "{4330DA4A-F7F4-48FA-B2FD-02B094E089EA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTest", "UnitTest\UnitTest.vcxproj", "{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{4330DA4A-F7F4-48FA-B2FD-02B094E089EA}.Release|x64.Build.0 = Release|x64
 		{4330DA4A-F7F4-48FA-B2FD-02B094E089EA}.Release|x86.ActiveCfg = Release|Win32
 		{4330DA4A-F7F4-48FA-B2FD-02B094E089EA}.Release|x86.Build.0 = Release|Win32
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Debug|x64.ActiveCfg = Debug|x64
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Debug|x64.Build.0 = Debug|x64
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Debug|x86.ActiveCfg = Debug|Win32
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Debug|x86.Build.0 = Debug|Win32
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Release|x64.ActiveCfg = Release|x64
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Release|x64.Build.0 = Release|x64
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Release|x86.ActiveCfg = Release|Win32
+		{54ECC011-8DB5-4D79-89F7-1F95BA778F5E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
