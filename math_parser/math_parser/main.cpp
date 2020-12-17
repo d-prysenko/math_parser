@@ -21,10 +21,35 @@ int main()
 	//const char* e4 = "1*1*1*c/c + 2*1*b/c";
 
 	//const char* e5 = "a*b + c*d + e*f";
-	const char* e6 = "a + b"; // -> a + b - c
-	const char* e7 = "d + a*(b*(w - p) - q*(c + k))"; // -> a - b + c
-	const char* e8 = "((6/2)*A+(8-5))/(E)"; // -> (6/2*A + 8 - 5)/E
-	const char* e9 = "a + b*(c + d)";
+	const char* e6 = "a + b";
+	const char* e7 = "d + a*(b*(w - p) - q*(c + k))";
+	const char* e9 = "a - d*(e + f + n)";
+
+	// a - (d*e + d*f + d*n)
+	//			-
+	//		a		+
+	//			+		d*n
+	//		d*e	  d*f
+
+	// a - d*e - d*f - d*n
+	//				-
+	//			-		d*n
+	//		-		d*f
+	//	a		d*e
+
+	// a - (d*e - d*f + d*n)
+	//			-
+	//		a		+
+	//			-		d*n
+	//		d*e	  d*f
+
+	// a - d*e + d*f - d*n
+	//				-
+	//			+		d*n
+	//		-		d*f
+	//	a		d*e
+
+	//
 	// d + a*(b*w + b*p + q*c + q)
 	//node<> *node1 = new node<number>(5);
 	//node<> *node2 = new node<identifier>("x");
@@ -32,23 +57,7 @@ int main()
 	//
 	//std::cout << std::endl;
 
-	//std::cout << node1->getInfo() << std::endl;
-	//std::cout << node2->getInfo() << std::endl;
-	//std::cout << node3->getInfo() << std::endl;
-	
-	// Passed
-	//BET b1(e7);
-	//std::cout << b1.toString() << std::endl;
-	//b1.openBrackets();
-	//std::cout << b1.toString() << std::endl << std::endl;
-
-	//b1.~BET();
-
-	BET b3(e8);
-	std::cout << e8 << "  ->  " << b3.toString() << std::endl << std::endl;
-
-
-	BET b2(e9);
+	BET b2("a - d*(e - f - n) + k");
 	std::cout << b2.toString() << std::endl;
 	b2.openBrackets();
 	std::cout << b2.toString() << std::endl << std::endl;

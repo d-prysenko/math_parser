@@ -66,7 +66,6 @@ std::string node::toString()
 	}
 }
 
-
 BET::BET()
 	: root(nullptr)
 {
@@ -94,10 +93,6 @@ BET::~BET()
 
 void BET::destruct(node* p_node)
 {
-	//auto it = std::find(symboltable.begin(), symboltable.end(), p_node);
-	//if (p_node->type == identifier && it == symboltable.end())
-	//	return;
-
 	if (p_node->left != nullptr)
 	{
 		destruct(p_node->left);
@@ -109,9 +104,6 @@ void BET::destruct(node* p_node)
 		destruct(p_node->right);
 		p_node->right = nullptr;
 	}
-
-	//if (p_node->type == identifier)
-	//	symboltable.erase(it);
 
 	delete p_node;
 }
@@ -144,6 +136,42 @@ void BET::openBrackets()
 	this->root = openBrackets(this->root);
 }
 
+node* BET::minusRefactor(node* p_node)
+{
+	node* temp = p_node->right;
+	std::stack<node*> nodes;
+
+	do
+	{
+		nodes.push(temp);
+		temp = temp->left;
+	} while (temp != nullptr && (temp->isSign('+') || temp->isSign('-')));
+
+	// looks crazy, it would be cool to refactor this using recursion
+
+	node* q;
+	node* t;
+
+	t = new node('-');
+	t->left = p_node->left;
+	t->right = nodes.top()->left;
+	q = t;
+
+	while (!nodes.empty())
+	{
+		if (nodes.top()->isSign('+'))
+			t = new node('-');
+		else
+			t = new node('+');
+
+		t->left = q;
+		t->right = nodes.top()->right;
+		nodes.pop();
+		q = t;
+	}
+	return t;
+}
+
 node* BET::openBrackets(node* p_node)
 {
 	if (p_node == nullptr || p_node->right == nullptr || p_node->left == nullptr)
@@ -173,6 +201,11 @@ node* BET::openBrackets(node* p_node)
 
 		p_node = p_node_new;
 	}
+
+	if (p_node->isSign('-') && (p_node->right->isSign('+') || p_node->right->isSign('-')))
+	{
+		p_node = minusRefactor(p_node);
+	}
 	
 
 	return p_node;
@@ -182,7 +215,9 @@ std::string BET::setBrackets(node* parent_node, node* child_node)
 {
 	if (child_node != nullptr)
 	{
-		if ((parent_node->isSign('*') || parent_node->isSign('/') || parent_node->isSign('-')) && (child_node->isSign('+') || child_node->isSign('-')))
+		if ((parent_node->isSign('*') || parent_node->isSign('/')) && (child_node->isSign('+') || child_node->isSign('-'))
+			|| (parent_node->isSign('/') && child_node->isSign('*'))
+			|| (parent_node->isSign('-') && parent_node->left != child_node && (child_node->isSign('+') || child_node->isSign('-'))))
 		{
 			return "(" + toString(child_node) + ")";
 		}
@@ -215,12 +250,11 @@ std::string BET::toString(node* p_node)
 
 node* BET::Parse(std::string expression, node* n)
 {
-	//std::string token = trimBrackets(expression);
 	std::string token = expression;
 	int brackets = 0;
 	const size_t end = token.length()-1;
 
-	// Рассматриваем на предмет наличия плюсиков и минусиков
+	// Process + and -
 	int i = end;
 	while (i >= 0 && (token[i] != '+' && token[i] != '-' || brackets != 0))
 	{
@@ -250,11 +284,7 @@ node* BET::Parse(std::string expression, node* n)
 	}
 	else if (i == 0)
 	{
-		// ну это будет если введена хуета и первый символ это вообще хуй пойми что
-
-		setlocale(LC_ALL, "ru");
-		//std::cout << "Ебать ты шо дурак????\n";
-		assert("Ебать ты шо дурак???? ты как это сделал");
+		assert("So critical error dude, gg");
 	}
 
 	
