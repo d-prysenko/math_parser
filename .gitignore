@@ -360,3 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+math_parser/.vs/math_parser/v16/.suo
+math_parser/.vs/math_parser/v16/Browse.VC.db
+math_parser/.vs/math_parser/v16/Browse.VC.db-shm
