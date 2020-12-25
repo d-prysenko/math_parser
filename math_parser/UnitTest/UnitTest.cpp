@@ -49,15 +49,23 @@ namespace UnitTest
 		{
 			std::string res = "a*b + a*c";
 			BET tree("a*(b + c)");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 
-		TEST_METHOD(TestSimpleOpenParanthesisMinus)
+		TEST_METHOD(TestSimpleOpenParanthesisMinus1)
+		{
+			std::string res = "a - d*e - d*f - d*n";
+			BET tree("a - (d*e + d*f + d*n)");
+			tree.transform();
+			Assert::AreEqual(res, tree.toString());
+		}
+
+		TEST_METHOD(TestSimpleOpenParanthesisMinus2)
 		{
 			std::string res = "a*b - a*c";
 			BET tree("a*(b - c)");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 
@@ -65,7 +73,7 @@ namespace UnitTest
 		{
 			std::string res = "a*b + a*c + d*e + d*f";
 			BET tree("a*(b + c) + d*(e + f)");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 
@@ -73,7 +81,7 @@ namespace UnitTest
 		{
 			std::string res = "k - c*a - c*b";
 			BET tree("k - c*(a + b)");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 
@@ -81,25 +89,34 @@ namespace UnitTest
 		{
 			std::string res = "k - c*a - c*b - p";
 			BET tree("k - c*(a + b) - p");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 
 			std::string res2 = "k - c*a - c*b + p";
 			BET tree2("k - c*(a + b) + p");
-			tree2.openBrackets();
+			tree2.transform();
 			Assert::AreEqual(res2, tree2.toString());
 
 			std::string res3 = "k - c*a + c*b + p";
 			BET tree3("k - c*(a - b) + p");
-			tree3.openBrackets();
+			tree3.transform();
 			Assert::AreEqual(res3, tree3.toString());
 		}
 
 		TEST_METHOD(TestOpenParanthesis4)
 		{
+			// 
+			//				+
+			//			+	   q*k
+			//		+	   q*c
+			//	b*w	  b*p
+
+			//				  +
+			//			+	  	    +
+			//		b*w	  b*p   q*c   q*k
 			std::string res = "d + a*b*w + a*b*p + a*q*c + a*q*k";
 			BET tree("d + a*(b*(w + p) + q*(c + k))");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 
@@ -107,7 +124,7 @@ namespace UnitTest
 		{
 			std::string res = "d + a*b*w - a*b*p - a*q*c - a*q*k";
 			BET tree("d + a*(b*(w - p) - q*(c + k))");
-			tree.openBrackets();
+			tree.transform();
 			Assert::AreEqual(res, tree.toString());
 		}
 	};

@@ -1,5 +1,6 @@
 #include "BET.h"
 
+#pragma warning(disable:26451)
 
 node::node(std::string id)
 	: left(nullptr), right(nullptr), type(nodeType::id)
@@ -48,6 +49,11 @@ node::~node()
 inline bool node::isSign(char c)
 {
 	return this->type == nodeType::sign && this->val.sign == c;
+}
+
+inline bool node::isplusminus()
+{
+	return isSign('+') || isSign('-');
 }
 
 std::string node::toString()
@@ -110,7 +116,7 @@ void BET::destruct(node* p_node)
 
 node* BET::Parse(std::string expression)
 {
-	for (char &c : expression)
+	for (char& c : expression)
 	{
 		if (!isblank(c))
 			this->sourse += c;
@@ -131,58 +137,106 @@ std::string BET::toString()
 	return toString(root);
 }
 
-void BET::openBrackets()
+void BET::transform()
 {
 	this->root = openBrackets(this->root);
+	sort(this->root);
 }
 
-node* BET::minusRefactor(node* p_node)
+void BET::sort(node* p_node)
 {
-	node* temp = p_node->right;
-	std::stack<node*> nodes;
 
-	do
+	//if (p_node->right->type == nodeType::number
+	//	|| (p_node->left->type == nodeType::id && p_node->right->type == nodeType::id
+	//		&& p_node->left->val.id->compare(*p_node->right->val.id) == 1))
+	//	std::swap(p_node->right, p_node->left);
+	//
+	//if (p_node->left != nullptr)
+	//	sort(p_node->left);
+
+	//if (p_node->right != nullptr)
+	//	sort(p_node->right);
+}
+
+node* BET::refactor(node* p_node, bool signInvert)
+{
+	if (p_node->left != nullptr && p_node->right != nullptr && (p_node->left->isplusminus() || p_node->right->isplusminus()))
 	{
-		nodes.push(temp);
-		temp = temp->left;
-	} while (temp != nullptr && (temp->isSign('+') || temp->isSign('-')));
 
-	// looks crazy, it would be cool to refactor this using recursion
+		refactor2(p_node);
 
-	node* q;
-	node* t;
+		// [stack] nodes - consequenced nodes
 
-	t = new node('-');
-	t->left = p_node->left;
-	t->right = nodes.top()->left;
-	q = t;
+		node* left = nodes.front(); nodes.pop();
 
-	while (!nodes.empty())
-	{
-		if (nodes.top()->isSign('+'))
-			t = new node('-');
-		else
-			t = new node('+');
+		node* new_node;
+		node* tmp;
+		do
+		{
+			tmp = nodes.front();
+			new_node = new node(nodes.front()->val.sign); nodes.pop();
+			new_node->left = left;
+			new_node->right = nodes.front(); nodes.pop();
+			left = new_node;
+		} while (signInvert && tmp != p_node);
 
-		t->left = q;
-		t->right = nodes.top()->right;
-		nodes.pop();
-		q = t;
+		while (nodes.size() != 0)
+		{
+			char sign = nodes.front()->val.sign;
+			if (signInvert)
+				if (sign == '+')
+					sign = '-';
+				else if (sign == '-')
+					sign = '+';
+
+			new_node = new node(sign); nodes.pop();
+			new_node->left = left;
+			new_node->right = nodes.front(); nodes.pop();
+			left = new_node;
+		}
+		p_node = left;
 	}
-	return t;
+	return p_node;
+}
+
+node* BET::refactor2(node* p_node)
+{
+	if (p_node->isplusminus() && p_node->left != nullptr)
+	{
+		refactor2(p_node->left);
+	}
+
+	//if (!p_node->isplusminus())
+	nodes.push(p_node);
+
+	if (p_node->isplusminus() && p_node->right != nullptr)
+	{
+		refactor2(p_node->right);
+	}
+
+	return p_node;
 }
 
 node* BET::openBrackets(node* p_node)
 {
 	if (p_node == nullptr || p_node->right == nullptr || p_node->left == nullptr)
-		return p_node;	
+		return p_node;
 
 	p_node->left = openBrackets(p_node->left);
 	p_node->right = openBrackets(p_node->right);
 
+	// если слева плюсы или минусы и справа плюсы или минусы
+	// если слева плюсы или минусы и справа переменная или число
+	// если слева переменная или число и справа плюсы или минусы
+
+	// если слева переменная или число и справа переменная или число
+
+
 	if (p_node->isSign('*')
-	&& (p_node->left->type == nodeType::id || p_node->left->type == nodeType::number)
-	&& (p_node->right->isSign('+') || p_node->right->isSign('-')))
+		&& (p_node->left->type == nodeType::id || p_node->left->type == nodeType::number)
+		&& (p_node->right->isSign('+') || p_node->right->isSign('-')))
+		/*if (p_node->isSign('*')
+		&& ((p_node->left->type != nodeType::id && p_node->left->type != nodeType::number) || (p_node->right->type != nodeType::id && p_node->right->type != nodeType::number)))*/
 	{
 		node* p_node_new = new node(p_node->right->val.sign);
 
@@ -202,14 +256,30 @@ node* BET::openBrackets(node* p_node)
 		p_node = p_node_new;
 	}
 
-	if (p_node->isSign('-') && (p_node->right->isSign('+') || p_node->right->isSign('-')))
+	if (p_node->isSign('-') && p_node->right != nullptr && p_node->right->isSign('-') && p_node->right->left == nullptr)
 	{
-		p_node = minusRefactor(p_node);
-	}
-	
+		node* p_node_new;
+		if (p_node->toString() == p_node->right->toString())
+			p_node_new = new node('+');
+		else
+			p_node_new = new node('-');
 
-	return p_node;
+		p_node_new->left = p_node->left;
+		p_node_new->right = p_node->right->right;
+
+		delete p_node->right;
+		delete p_node;
+
+		p_node = p_node_new;
+	}
+
+	if (p_node->isSign('-') && (p_node->right->isSign('+') || p_node->right->isSign('-')))
+		return refactor(p_node, true);
+	else
+		return refactor(p_node);
 }
+
+
 
 std::string BET::setBrackets(node* parent_node, node* child_node)
 {
@@ -231,11 +301,11 @@ std::string BET::setBrackets(node* parent_node, node* child_node)
 std::string BET::toString(node* p_node)
 {
 	std::string out = "";
-	
+
 	out += setBrackets(p_node, p_node->left);
 
 
-	if (p_node->isSign('+') || p_node->isSign('-'))
+	if ((p_node->isSign('+') || p_node->isSign('-')) && p_node->left != nullptr)
 	{
 		out += " " + p_node->toString() + " ";
 	}
@@ -252,7 +322,7 @@ node* BET::Parse(std::string expression, node* n)
 {
 	std::string token = expression;
 	int brackets = 0;
-	const size_t end = token.length()-1;
+	const size_t end = token.length() - 1;
 
 	// Process + and -
 	int i = end;
@@ -277,38 +347,44 @@ node* BET::Parse(std::string expression, node* n)
 
 		return n;
 	}
-	else if (i == 0 && (token[0] == '+' || token[0] == '-'))
-	{
-		// unary +-
-		std::cout << "WARNING: untreated unary sign!\n";
-	}
-	else if (i == 0)
+	else if (i == 0 && token[0] != '+' && token[0] != '-')
 	{
 		assert("So critical error dude, gg");
 	}
 
-	
+
 
 	// Process * and /
-	i = end;
+	int j = end;
 	brackets = 0;
-	while (i >= 0 && (token[i] != '*' && token[i] != '/' || brackets != 0))
+	while (j >= 0 && (token[j] != '*' && token[j] != '/' || brackets != 0))
 	{
-		if (token[i] == '(')
+		if (token[j] == '(')
 			brackets++;
-		else if (token[i] == ')')
+		else if (token[j] == ')')
 			brackets--;
 
-		i--;
+		j--;
 	}
 
-	if (i > 0)
+	if (j > 0)
 	{
-		n = new node(token[i]);
+		n = new node(token[j]);
 
-		std::string ltoken = trimBrackets(token.substr(0, i));
-		std::string rtoken = trimBrackets(token.substr(i + 1, end - i));
+		std::string ltoken = trimBrackets(token.substr(0, j));
+		std::string rtoken = trimBrackets(token.substr(j + 1, end - j));
 		n->left = Parse(ltoken, n->left);
+		n->right = Parse(rtoken, n->right);
+
+		return n;
+	}
+
+	// unary +-
+	if (i == 0 && (token[0] == '+' || token[0] == '-'))
+	{
+		n = new node(token[0]);
+
+		std::string rtoken = trimBrackets(token.substr(i + 1, end - i));
 		n->right = Parse(rtoken, n->right);
 
 		return n;
@@ -399,6 +475,18 @@ bool islang(const char c)
 {
 	if (isalnum(c) || issign(c) || c == '^')
 		return true;
+
+	return false;
+}
+
+bool operator==(BET& left, BET& right)
+{
+	left.sort(left.root);
+	right.sort(right.root);
+	if (left.toString() == right.toString())
+		return true;
+
+
 
 	return false;
 }
