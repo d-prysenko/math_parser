@@ -80,7 +80,7 @@ private:
 	std::string setBrackets(node* parent_node, node* child_node);
 	node* openBrackets(node* p_node);
 	node* refactor(node* p_node, bool signInvert = false);
-	node* refactor2(node* p_node);
+	node* fillNodesQueue(node* p_node);
 	void sort(node* p_node);
 	std::string toString(node* n);
 	ParsingError Analize(std::string expression);

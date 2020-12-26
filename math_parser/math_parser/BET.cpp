@@ -137,25 +137,17 @@ std::string BET::toString()
 	return toString(root);
 }
 
+
 void BET::transform()
 {
 	this->root = openBrackets(this->root);
 	sort(this->root);
 }
 
+// Sorting method before comparison expression trees
 void BET::sort(node* p_node)
 {
 
-	//if (p_node->right->type == nodeType::number
-	//	|| (p_node->left->type == nodeType::id && p_node->right->type == nodeType::id
-	//		&& p_node->left->val.id->compare(*p_node->right->val.id) == 1))
-	//	std::swap(p_node->right, p_node->left);
-	//
-	//if (p_node->left != nullptr)
-	//	sort(p_node->left);
-
-	//if (p_node->right != nullptr)
-	//	sort(p_node->right);
 }
 
 node* BET::refactor(node* p_node, bool signInvert)
@@ -163,9 +155,11 @@ node* BET::refactor(node* p_node, bool signInvert)
 	if (p_node->left != nullptr && p_node->right != nullptr && (p_node->left->isplusminus() || p_node->right->isplusminus()))
 	{
 
-		refactor2(p_node);
+		fillNodesQueue(p_node);
 
-		// [stack] nodes - consequenced nodes
+		// [queue] nodes - consequenced nodes
+
+		// There are a few memory leaks here
 
 		node* left = nodes.front(); nodes.pop();
 
@@ -199,19 +193,18 @@ node* BET::refactor(node* p_node, bool signInvert)
 	return p_node;
 }
 
-node* BET::refactor2(node* p_node)
+node* BET::fillNodesQueue(node* p_node)
 {
 	if (p_node->isplusminus() && p_node->left != nullptr)
 	{
-		refactor2(p_node->left);
+		fillNodesQueue(p_node->left);
 	}
 
-	//if (!p_node->isplusminus())
 	nodes.push(p_node);
 
 	if (p_node->isplusminus() && p_node->right != nullptr)
 	{
-		refactor2(p_node->right);
+		fillNodesQueue(p_node->right);
 	}
 
 	return p_node;
@@ -224,13 +217,6 @@ node* BET::openBrackets(node* p_node)
 
 	p_node->left = openBrackets(p_node->left);
 	p_node->right = openBrackets(p_node->right);
-
-	// если слева плюсы или минусы и справа плюсы или минусы
-	// если слева плюсы или минусы и справа переменная или число
-	// если слева переменная или число и справа плюсы или минусы
-
-	// если слева переменная или число и справа переменная или число
-
 
 	if (p_node->isSign('*')
 		&& (p_node->left->type == nodeType::id || p_node->left->type == nodeType::number)
@@ -452,7 +438,7 @@ void BET::PrintParsingError(ParsingError e)
 		std::cout << "Error in parantheses" << std::endl;
 		break;
 	case Identificator:
-		std::cout << "Tb|, eBlan, identificator is invalid" << std::endl;
+		std::cout << "Identificator is invalid" << std::endl;
 		break;
 	case Signs:
 		std::cout << "Two signs can't stand one right after another one" << std::endl;
@@ -481,12 +467,14 @@ bool islang(const char c)
 
 bool operator==(BET& left, BET& right)
 {
+	/*
 	left.sort(left.root);
 	right.sort(right.root);
 	if (left.toString() == right.toString())
 		return true;
+	*/
 
-
+	// There is no correct comparison code yet :(
 
 	return false;
 }
