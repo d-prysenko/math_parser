@@ -2,11 +2,21 @@
 
 #pragma warning(disable:4996)
 
+#include <sstream>
+#include <string>
+#include <iostream>
 #include <cassert>
-#include <map>
-#include "node.h"
+#include <stack>
+#include <queue>
 
-typedef nodeType tokenType;
+enum class nodeType
+{
+	number,
+	id,
+	sign,
+	parent,
+	unknown
+};
 
 enum ParsingError
 {
@@ -14,6 +24,35 @@ enum ParsingError
 	Parantheses,
 	Identificator,
 	Signs
+};
+
+typedef nodeType tokenType;
+
+struct node
+{
+	nodeType type;
+
+	union
+	{
+		std::string* id;
+		int number;
+		char sign;
+	} val;
+
+	node* left;
+	node* right;
+
+	node(std::string);
+	node(int);
+	node(char);
+	node(node& p_node);
+
+	~node();
+
+	inline bool isSign(char c);
+	inline bool isplusminus();
+	std::string toString();
+
 };
 
 class BET
@@ -24,33 +63,28 @@ public:
 	BET(std::string expression);
 	~BET();
 
-	node<>* Parse(std::string expression);
+	friend bool operator==(BET &left, BET &right);
+
+	node* Parse(std::string expression);
 	std::string toString();
-	void openBrackets();
+	void transform();
 	
 
-	class iterator
-	{
-	public:
-		std::string& operator*();
-		std::string& operator++();
-	private:
-	};
-
 private:
-	node<>* root;
+	node* root;
 	std::string sourse;
-	std::map<std::string, node<>*> symboltable;
+	std::queue<node*> nodes;
 
-	node<>* Parse(std::string expression, node<>* n);
+	node* Parse(std::string expression, node* n);
 	std::string trimBrackets(std::string);
-	std::string setBrackets(node<>* parent_node, node<>* child_node);
-	node<>* openBrackets(node<>* p_node);
-	std::string toString(node<>* n);
+	std::string setBrackets(node* parent_node, node* child_node);
+	node* openBrackets(node* p_node);
+	node* refactor(node* p_node, bool signInvert = false);
+	node* fillNodesQueue(node* p_node);
+	void sort(node* p_node);
+	std::string toString(node* n);
 	ParsingError Analize(std::string expression);
 	void PrintParsingError(ParsingError e);
 
-	void destruct(node<>* p_node);
+	void destruct(node* p_node);
 };
-
-bool issign(const char c);
